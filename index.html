@@ -2,71 +2,65 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Ubicación con OpenStreetMap</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha512-pMycFvTKnWk51NkxYbmYv+JUZ20cXbHqfuHr3G1nYgCff1wWyGqNUkxwRu+PH3yOgFGLV5ixGZoG9n+Nr+Z1xQ=="
-    crossorigin=""
-  />
+  <title>Captura desde la cámara</title>
   <style>
-    #map {
-      height: 400px;
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    video, canvas {
       width: 100%;
+      max-width: 480px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <h1>Tu ubicación actual</h1>
-  <p id="estado">Obteniendo ubicación...</p>
-  <p id="coordenadas"></p>
-  <p id="direccion">Dirección: (esperando datos...)</p>
-  <div id="map"></div>
+  <h1>App de Cámara en HTML</h1>
 
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha512-sA+z0pUFnB9IWQYZ4gT0qShPbqhlb0K4GnHADKZQ+8x1rKP6nRwEbxFz91aFqZhSkdEkX78ZZ91G3YLMu5D1QA=="
-    crossorigin=""
-  ></script>
+  <video id="video" autoplay playsinline></video>
+  <br>
+  <button id="capturar">📸 Capturar foto</button>
+  <p id="estado">Esperando cámara...</p>
+
+  <h2>Foto capturada:</h2>
+  <canvas id="canvas"></canvas>
 
   <script>
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        function (pos) {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          document.getElementById("estado").textContent = "Ubicación obtenida:";
-          document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const capturarBtn = document.getElementById('capturar');
+    const estado = document.getElementById('estado');
 
-          // Mostrar mapa con Leaflet
-          const map = L.map("map").setView([lat, lon], 15);
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "© OpenStreetMap contributors",
-          }).addTo(map);
+    const opciones = {
+      video: {
+        facingMode: 'environment' // Usa la cámara trasera si está disponible
+      }
+    };
 
-          // Agregar marcador
-          const marker = L.marker([lat, lon]).addTo(map);
+    navigator.mediaDevices.getUserMedia(opciones)
+      .then(stream => {
+        video.srcObject = stream;
+        estado.textContent = "Cámara activa.";
+      })
+      .catch(err => {
+        console.error("Error al acceder a la cámara:", err);
+        estado.textContent = "Error: no se pudo acceder a la cámara.";
+      });
 
-          // Hacer solicitud a Nominatim (geocodificación inversa)
-          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
-            .then((res) => res.json())
-            .then((data) => {
-              const direccion = data.display_name;
-              document.getElementById("direccion").textContent = "Dirección: " + direccion;
-              marker.bindPopup(direccion).openPopup();
-            })
-            .catch((err) => {
-              document.getElementById("direccion").textContent = "No se pudo obtener la dirección.";
-              console.error(err);
-            });
-        },
-        function () {
-          document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
-        }
-      );
-    } else {
-      document.getElementById("estado").textContent = "Geolocalización no soportada por el navegador.";
-    }
+    capturarBtn.addEventListener('click', () => {
+      const contexto = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+    });
   </script>
 </body>
 </html>
