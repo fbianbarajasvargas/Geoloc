@@ -2,37 +2,38 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geolocalización</title>
+  <title>Ubicación con Google Maps</title>
 </head>
 <body>
-  <h1>Geolocalización prueba</h1>
-  <script>
-window.onload = function() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function(position) {
-        console.log("Ubicación obtenida:", position.coords.latitude, position.coords.longitude);
-        document.write("Ubicación: " + position.coords.latitude + ", " + position.coords.longitude);
-      },
-      function(error) {
-        console.error("Error al obtener ubicación:", error);
-        document.write("No se pudo obtener la ubicación. Código de error: " + error.code);
-        // También puedes agregar una descripción más detallada
-        if (error.code === error.PERMISSION_DENIED) {
-          document.write("El usuario denegó el permiso para acceder a la ubicación.");
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          document.write("No se pudo obtener la ubicación. La información de ubicación no está disponible.");
-        } else if (error.code === error.TIMEOUT) {
-          document.write("La solicitud para obtener la ubicación ha expirado.");
-        }
-      }
-    );
-  } else {
-    alert("La geolocalización no es soportada por este navegador.");
-  }
+  <h1>Mostrar ubicación actual</h1>
+  <p id="estado">Obteniendo ubicación...</p>
+  <p id="coordenadas"></p>
+  <a id="mapaLink" target="_blank">Ver en Google Maps</a>
 
-};
+  <script>
+    // Verifica si el navegador soporta geolocalización
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function (posicion) {
+          const lat = posicion.coords.latitude;
+          const lon = posicion.coords.longitude;
+
+          document.getElementById("estado").textContent = "Ubicación obtenida:";
+          document.getElementById("coordenadas").textContent = `Lat: ${lat}, Lon: ${lon}`;
+
+          // Crear el enlace a Google Maps
+          const link = `https://www.google.com/maps?q=${lat},${lon}`;
+          document.getElementById("mapaLink").href = link;
+          document.getElementById("mapaLink").textContent = "Abrir ubicación en Google Maps";
+        },
+        function (error) {
+          document.getElementById("estado").textContent = "Error al obtener la ubicación.";
+          console.error(error);
+        }
+      );
+    } else {
+      document.getElementById("estado").textContent = "Geolocalización no soportada por este navegador.";
+    }
   </script>
 </body>
 </html>
