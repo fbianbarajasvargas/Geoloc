@@ -2,41 +2,70 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mapa en la página</title>
+  <title>Ubicación con OpenStreetMap</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha512-pMycFvTKnWk51NkxYbmYv+JUZ20cXbHqfuHr3G1nYgCff1wWyGqNUkxwRu+PH3yOgFGLV5ixGZoG9n+Nr+Z1xQ=="
+    crossorigin=""
+  />
   <style>
-    #mapa {
-      width: 100%;
+    #map {
       height: 400px;
-      border: 0;
+      width: 100%;
     }
   </style>
 </head>
 <body>
-  <h1>Tu ubicación en el mapa</h1>
+  <h1>Tu ubicación actual</h1>
   <p id="estado">Obteniendo ubicación...</p>
   <p id="coordenadas"></p>
-  <iframe id="mapa" loading="lazy"></iframe>
+  <p id="direccion">Dirección: (esperando datos...)</p>
+  <div id="map"></div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha512-sA+z0pUFnB9IWQYZ4gT0qShPbqhlb0K4GnHADKZQ+8x1rKP6nRwEbxFz91aFqZhSkdEkX78ZZ91G3YLMu5D1QA=="
+    crossorigin=""
+  ></script>
 
   <script>
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        function (posicion) {
-          const lat = posicion.coords.latitude;
-          const lon = posicion.coords.longitude;
-
-          document.getElementById("estado").textContent = "Ubicación actual:";
+        function (pos) {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          document.getElementById("estado").textContent = "Ubicación obtenida:";
           document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
 
-          const mapaURL = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
-          document.getElementById("mapa").src = mapaURL;
+          // Mostrar mapa con Leaflet
+          const map = L.map("map").setView([lat, lon], 15);
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "© OpenStreetMap contributors",
+          }).addTo(map);
+
+          // Agregar marcador
+          const marker = L.marker([lat, lon]).addTo(map);
+
+          // Hacer solicitud a Nominatim (geocodificación inversa)
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
+            .then((res) => res.json())
+            .then((data) => {
+              const direccion = data.display_name;
+              document.getElementById("direccion").textContent = "Dirección: " + direccion;
+              marker.bindPopup(direccion).openPopup();
+            })
+            .catch((err) => {
+              document.getElementById("direccion").textContent = "No se pudo obtener la dirección.";
+              console.error(err);
+            });
         },
-        function (error) {
+        function () {
           document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
-          console.error(error);
         }
       );
     } else {
-      document.getElementById("estado").textContent = "Tu navegador no soporta geolocalización.";
+      document.getElementById("estado").textContent = "Geolocalización no soportada por el navegador.";
     }
   </script>
 </body>
