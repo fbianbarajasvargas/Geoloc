@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geolocalización y Cámara</title>
+  <title>Geolocalización</title>
 </head>
 <body>
   <h1>Geolocalización</h1>
@@ -13,18 +13,18 @@ window.onload = function() {
     navigator.geolocation.getCurrentPosition(
       function(position) {
         console.log("Ubicación obtenida:", position.coords.latitude, position.coords.longitude);
-        alert("Ubicación: " + position.coords.latitude + ", " + position.coords.longitude);
+        document.write("Ubicación: " + position.coords.latitude + ", " + position.coords.longitude);
       },
       function(error) {
         console.error("Error al obtener ubicación:", error);
-        alert("No se pudo obtener la ubicación. Código de error: " + error.code);
+        document.write("No se pudo obtener la ubicación. Código de error: " + error.code);
         // También puedes agregar una descripción más detallada
         if (error.code === error.PERMISSION_DENIED) {
-          alert("El usuario denegó el permiso para acceder a la ubicación.");
+          document.write("El usuario denegó el permiso para acceder a la ubicación.");
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          alert("No se pudo obtener la ubicación. La información de ubicación no está disponible.");
+          document.write("No se pudo obtener la ubicación. La información de ubicación no está disponible.");
         } else if (error.code === error.TIMEOUT) {
-          alert("La solicitud para obtener la ubicación ha expirado.");
+          document.write("La solicitud para obtener la ubicación ha expirado.");
         }
       }
     );
@@ -32,16 +32,6 @@ window.onload = function() {
     alert("La geolocalización no es soportada por este navegador.");
   }
 
-  // Solicitar permisos para la cámara
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(function(stream) {
-      console.log("Cámara accesible");
-      alert("Cámara accesible");
-    })
-    .catch(function(error) {
-      console.error("Error al acceder a la cámara:", error);
-      alert("No se pudo acceder a la cámara.");
-    });
 };
   </script>
 </body>
