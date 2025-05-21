@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Captura desde la cámara</title>
+  <title>Activar cámara con permiso</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -19,16 +19,20 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
+      margin: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>App de Cámara en HTML</h1>
+  <h1>App de Cámara con Permiso Manual</h1>
 
-  <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay playsinline hidden></video>
   <br>
-  <button id="capturar">📸 Capturar foto</button>
-  <p id="estado">Esperando cámara...</p>
+
+  <button id="activar">📷 Activar Cámara</button>
+  <button id="capturar" hidden>📸 Capturar Foto</button>
+  <button id="cambiar" hidden>🔄 Cambiar Cámara</button>
+  <p id="estado">Haz clic en "Activar Cámara" para comenzar.</p>
 
   <h2>Foto capturada:</h2>
   <canvas id="canvas"></canvas>
@@ -36,30 +40,55 @@
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
+    const activarBtn = document.getElementById('activar');
     const capturarBtn = document.getElementById('capturar');
+    const cambiarBtn = document.getElementById('cambiar');
     const estado = document.getElementById('estado');
 
-    const opciones = {
-      video: {
-        facingMode: 'environment' // Usa la cámara trasera si está disponible
-      }
-    };
+    let usandoFrontal = false;
+    let streamActual = null;
 
-    navigator.mediaDevices.getUserMedia(opciones)
-      .then(stream => {
+    async function iniciarCamara() {
+      if (streamActual) {
+        streamActual.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: usandoFrontal ? 'user' : 'environment'
+        }
+      };
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
-        estado.textContent = "Cámara activa.";
-      })
-      .catch(err => {
+        streamActual = stream;
+
+        video.hidden = false;
+        capturarBtn.hidden = false;
+        cambiarBtn.hidden = false;
+        estado.textContent = usandoFrontal ? "Cámara frontal activa" : "Cámara trasera activa";
+      } catch (err) {
         console.error("Error al acceder a la cámara:", err);
-        estado.textContent = "Error: no se pudo acceder a la cámara.";
-      });
+        estado.textContent = "No se pudo acceder a la cámara.";
+      }
+    }
+
+    activarBtn.addEventListener('click', () => {
+      activarBtn.hidden = true;
+      iniciarCamara();
+    });
 
     capturarBtn.addEventListener('click', () => {
       const contexto = canvas.getContext('2d');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+    });
+
+    cambiarBtn.addEventListener('click', () => {
+      usandoFrontal = !usandoFrontal;
+      iniciarCamara();
     });
   </script>
 </body>
