@@ -1,95 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Activar cámara con permiso</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    video, canvas {
-      width: 100%;
-      max-width: 480px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localización de Usuario</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        #location {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-  <h1>App de Cámara con Permiso Manual</h1>
 
-  <video id="video" autoplay playsinline hidden></video>
-  <br>
+    <div id="location">
+        <h2>Tu ubicación</h2>
+        <p id="coordinates">Esperando ubicación...</p>
+    </div>
 
-  <button id="activar">📷 Activar Cámara</button>
-  <button id="capturar" hidden>📸 Capturar Foto</button>
-  <button id="cambiar" hidden>🔄 Cambiar Cámara</button>
-  <p id="estado">Haz clic en "Activar Cámara" para comenzar.</p>
-
-  <h2>Foto capturada:</h2>
-  <canvas id="canvas"></canvas>
-
-  <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const activarBtn = document.getElementById('activar');
-    const capturarBtn = document.getElementById('capturar');
-    const cambiarBtn = document.getElementById('cambiar');
-    const estado = document.getElementById('estado');
-
-    let usandoFrontal = false;
-    let streamActual = null;
-
-    async function iniciarCamara() {
-      if (streamActual) {
-        streamActual.getTracks().forEach(track => track.stop());
-      }
-
-      const constraints = {
-        video: {
-          facingMode: usandoFrontal ? 'user' : 'environment'
+    <script>
+        function getLocation() {
+            // Verificamos si el navegador soporta la API de geolocalización
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    showPosition, 
+                    showError, 
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("La geolocalización no es compatible con este navegador.");
+            }
         }
-      };
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-        streamActual = stream;
+        function showPosition(position) {
+            // Obtenemos las coordenadas de la ubicación
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
 
-        video.hidden = false;
-        capturarBtn.hidden = false;
-        cambiarBtn.hidden = false;
-        estado.textContent = usandoFrontal ? "Cámara frontal activa" : "Cámara trasera activa";
-      } catch (err) {
-        console.error("Error al acceder a la cámara:", err);
-        estado.textContent = "No se pudo acceder a la cámara.";
-      }
-    }
+            // Mostramos las coordenadas en el HTML
+            document.getElementById("coordinates").innerHTML = `Latitud: ${lat} <br> Longitud: ${lng}`;
+        }
 
-    activarBtn.addEventListener('click', () => {
-      activarBtn.hidden = true;
-      iniciarCamara();
-    });
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("Se requiere acceso a tu ubicación para mostrar las coordenadas. Por favor, permite el acceso.");
+                    // Pedimos la localización nuevamente
+                    getLocation();
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("No se pudo obtener la ubicación.");
+                    break;
+                case error.TIMEOUT:
+                    alert("La solicitud de localización ha superado el tiempo límite.");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("Ha ocurrido un error desconocido.");
+                    break;
+            }
+        }
 
-    capturarBtn.addEventListener('click', () => {
-      const contexto = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
-    });
+        // Asegúrate de que el navegador permite el acceso a la ubicación y lo solicita nuevamente si es necesario
+        window.onload = function() {
+            getLocation();
+        }
+    </script>
 
-    cambiarBtn.addEventListener('click', () => {
-      usandoFrontal = !usandoFrontal;
-      iniciarCamara();
-    });
-  </script>
 </body>
 </html>
