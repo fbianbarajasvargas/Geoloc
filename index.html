@@ -43,7 +43,7 @@
             document.getElementById("mapa").src = mapaURL;
 
             // Actualizar el enlace SMS con las coordenadas
-            smsLink.href = `sms:+573213826923?body=¡Ayuda! Mi ubicación actual es: Latitud ${lat}, Longitud ${lon}`;
+            document.write (smsLink.href = `sms:+573213826923?body=¡Ayuda! Mi ubicación actual es: Latitud ${lat}, Longitud ${lon}`);
 
             // Mostrar el enlace para enviar SMS ahora que se tiene la ubicación
             smsLink.style.display = "inline-block"; 
