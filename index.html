@@ -45,11 +45,13 @@ function solicitarUbicacion() {
                         setTimeout(solicitarUbicacion, 1000);  // Reintenta después de 2 segundos
                     } else {
                         document.getElementById("estado").textContent = "Se ha denegado el acceso a la ubicación. No se puede continuar.";
+                      navigator.geolocation
                     }
                 } else {
                     // Si ocurre otro error
                     document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
                     console.error(error);
+                  
                 }
             }
         );
