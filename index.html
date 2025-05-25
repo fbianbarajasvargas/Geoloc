@@ -2,10 +2,11 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mapa en la página</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geolocalización</title>
   <style>
     #mapa {
-      width: 800px;
+      width: 100%;
       height: 400px;
       border: 0;
     }
@@ -16,55 +17,68 @@
   <p id="estado">Obteniendo ubicación...</p>
   <p id="coordenadas"></p>
   <iframe id="mapa" loading="lazy"></iframe>
+  
+  <!-- Botón para volver a intentar solicitar permisos -->
+  <button id="volver-a-intentar" style="display:none;">Volver a intentar obtener ubicación</button>
 
   <script>
-let intentos = 0;  // Contador de intentos para evitar el bucle infinito
+    let intentos = 0;  // Contador para evitar reintentos infinitos
 
-// Función para solicitar la ubicación del usuario
-function solicitarUbicacion() {
-    if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-            function (posicion) {
-                // Si la geolocalización es exitosa
-                const lat = posicion.coords.latitude;
-                const lon = posicion.coords.longitude;
+    // Función para solicitar la ubicación del usuario
+    function solicitarUbicacion() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function (posicion) {
+            // Si la geolocalización es exitosa
+            const lat = posicion.coords.latitude;
+            const lon = posicion.coords.longitude;
 
-                document.getElementById("estado").textContent = "Ubicación actual:";
-                document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
+            document.getElementById("estado").textContent = "Ubicación actual:";
+            document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
 
-                const mapaURL = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
-                document.getElementById("mapa").src = mapaURL;
-            },
-            function (error) {
-                // Manejo del error
-                if (error.code === error.PERMISSION_DENIED) {
-                    // Si el usuario deniega el permiso
-                    if (intentos < 3) {  // Limita los intentos para evitar bucles infinitos
-                        document.getElementById("estado").textContent = "No se pudo obtener la ubicación. Intentando nuevamente...";
-                        intentos++;  // Incrementa el contador de intentos
-                        setTimeout(solicitarUbicacion, 2000);  // Reintenta después de 2 segundos
-                    } else {
-                        document.getElementById("estado").textContent = "Se ha denegado el acceso a la ubicación. No se puede continuar.";
-                    }
-                } else {
-                    // Si ocurre otro error
-                    document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
-                    console.error(error);
-                }
-            },
-            {
-                enableHighAccuracy: true, // Intenta obtener la ubicación más precisa posible
-                timeout: 10000,  // Tiempo máximo de espera para obtener la ubicación (10 segundos)
-                maximumAge: 0  // No utilizar una ubicación previamente almacenada
+            const mapaURL = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+            document.getElementById("mapa").src = mapaURL;
+
+            // Ocultar el botón de reintento si ya obtuvimos la ubicación
+            document.getElementById("volver-a-intentar").style.display = "none";
+          },
+          function (error) {
+            // Manejo de errores
+            if (error.code === error.PERMISSION_DENIED) {
+              // Si el usuario deniega el permiso permanentemente
+              if (intentos < 3) {  // Limitar el número de intentos
+                document.getElementById("estado").textContent = "No se pudo obtener la ubicación. Intentando nuevamente...";
+                intentos++;
+                setTimeout(solicitarUbicacion, 2000);  // Reintenta después de 2 segundos
+              } else {
+                document.getElementById("estado").textContent = "Se ha denegado el acceso a la ubicación. No se puede continuar.";
+                // Mostrar el botón para reintentar
+                document.getElementById("volver-a-intentar").style.display = "inline-block";
+                document.getElementById("instrucciones").textContent = "Si has denegado permanentemente el permiso, por favor, restablece los permisos de ubicación en la configuración de tu navegador.";
+              }
+            } else {
+              // Si ocurre otro error
+              document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
+              console.error(error);
             }
+          }
         );
-    } else {
+      } else {
         document.getElementById("estado").textContent = "Tu navegador no soporta geolocalización.";
+      }
     }
-}
 
-// Llamada inicial para obtener la ubicación
-window.onload = solicitarUbicacion;
+    // Función que reinicia la solicitud de ubicación al hacer clic en el botón
+    document.getElementById("volver-a-intentar").addEventListener("click", function() {
+      document.getElementById("estado").textContent = "Obteniendo ubicación...";
+      document.getElementById("instrucciones").textContent = ""; // Limpiar instrucciones
+      solicitarUbicacion();  // Volver a intentar
+    });
+
+    // Llamada inicial para obtener la ubicación
+    window.onload = solicitarUbicacion;
   </script>
+
+  <p id="instrucciones"></p>
 </body>
 </html>
