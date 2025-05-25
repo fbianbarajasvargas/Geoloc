@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geolocalización</title>
+  <title>Geolocalización de Emergencia</title>
   <style>
     #mapa {
-      width: 100%;
+      width: 400px;
       height: 400px;
       border: 0;
     }
   </style>
 </head>
 <body>
-  <h1>Tu ubicación en el mapa</h1>
+
+  <h1>Geolocalización de Emergencia</h1>
   <p id="estado">Obteniendo ubicación...</p>
   <p id="coordenadas"></p>
   <iframe id="mapa" loading="lazy"></iframe>
@@ -23,6 +24,8 @@
 
   <script>
     let intentos = 0;  // Contador para evitar reintentos infinitos
+    let lat, lon; // Variables para almacenar latitud y longitud
+    let smsLink = document.getElementById("sms-link"); // Enlace para enviar SMS
 
     // Función para solicitar la ubicación del usuario
     function solicitarUbicacion() {
@@ -30,14 +33,17 @@
         navigator.geolocation.getCurrentPosition(
           function (posicion) {
             // Si la geolocalización es exitosa
-            const lat = posicion.coords.latitude;
-            const lon = posicion.coords.longitude;
+            lat = posicion.coords.latitude;
+            lon = posicion.coords.longitude;
 
             document.getElementById("estado").textContent = "Ubicación actual:";
             document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
 
             const mapaURL = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
             document.getElementById("mapa").src = mapaURL;
+
+            // Actualizar el enlace SMS con las coordenadas
+            smsLink.href = `sms:+573213826923?body=¡Ayuda! Mi ubicación actual es: Latitud ${lat}, Longitud ${lon}`;
 
             // Ocultar el botón de reintento si ya obtuvimos la ubicación
             document.getElementById("volver-a-intentar").style.display = "none";
@@ -80,8 +86,9 @@
   </script>
 
   <p id="instrucciones"></p>
-    <a href="sms:+573213826923?body=Hola, este es un mensaje predeterminado" 
-   class="btn">Enviar Mensaje</a>
+
+  <!-- Enlace para enviar el SMS con las coordenadas de ubicación -->
+  <a id="sms-link" href="sms:+573213826923?body=¡Ayuda! Mi ubicación actual es: Latitud 0, Longitud 0" class="btn">Enviar Mensaje de Emergencia</a>
 
 </body>
 </html>
