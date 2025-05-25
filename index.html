@@ -18,12 +18,12 @@
   <iframe id="mapa" loading="lazy"></iframe>
 
   <script>
-   let intentos = 0;  // Contador de intentos para evitar el bucle infinito
+let intentos = 0;  // Contador de intentos para evitar el bucle infinito
 
 // Función para solicitar la ubicación del usuario
 function solicitarUbicacion() {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
+        navigator.geolocation.watchPosition(
             function (posicion) {
                 // Si la geolocalización es exitosa
                 const lat = posicion.coords.latitude;
@@ -42,17 +42,20 @@ function solicitarUbicacion() {
                     if (intentos < 3) {  // Limita los intentos para evitar bucles infinitos
                         document.getElementById("estado").textContent = "No se pudo obtener la ubicación. Intentando nuevamente...";
                         intentos++;  // Incrementa el contador de intentos
-                        setTimeout(solicitarUbicacion, 1000);  // Reintenta después de 2 segundos
+                        setTimeout(solicitarUbicacion, 2000);  // Reintenta después de 2 segundos
                     } else {
                         document.getElementById("estado").textContent = "Se ha denegado el acceso a la ubicación. No se puede continuar.";
-                      navigator.geolocation
                     }
                 } else {
                     // Si ocurre otro error
                     document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
                     console.error(error);
-                  
                 }
+            },
+            {
+                enableHighAccuracy: true, // Intenta obtener la ubicación más precisa posible
+                timeout: 10000,  // Tiempo máximo de espera para obtener la ubicación (10 segundos)
+                maximumAge: 0  // No utilizar una ubicación previamente almacenada
             }
         );
     } else {
