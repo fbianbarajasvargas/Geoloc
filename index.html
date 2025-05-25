@@ -1,84 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Localización de Usuario</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background-color: #f4f4f4;
-        }
-        #location {
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            font-size: 18px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Mapa en la página</title>
+  <style>
+    #mapa {
+      width: 800px;
+      height: 400px;
+      border: 0;
+    }
+  </style>
 </head>
 <body>
+  <h1>Tu ubicación en el mapa</h1>
+  <p id="estado">Obteniendo ubicación...</p>
+  <p id="coordenadas"></p>
+  <iframe id="mapa" loading="lazy"></iframe>
 
-    <div id="location">
-        <h2>Tu ubicación</h2>
-        <p id="coordinates">Esperando ubicación...</p>
-    </div>
+  <script>
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function (posicion) {
+          const lat = posicion.coords.latitude;
+          const lon = posicion.coords.longitude;
 
-    <script>
-        function getLocation() {
-            // Verificamos si el navegador soporta la API de geolocalización
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    showPosition, 
-                    showError, 
-                    { enableHighAccuracy: true }
-                );
-            } else {
-                alert("La geolocalización no es compatible con este navegador.");
-            }
+          document.getElementById("estado").textContent = "Ubicación actual:";
+          document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
+
+          const mapaURL = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+          document.getElementById("mapa").src = mapaURL;
+        },
+        function (error) {
+          document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
+          console.error(error);
         }
-
-        function showPosition(position) {
-            // Obtenemos las coordenadas de la ubicación
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-
-            // Mostramos las coordenadas en el HTML
-            document.getElementById("coordinates").innerHTML = `Latitud: ${lat} <br> Longitud: ${lng}`;
-        }
-
-        function showError(error) {
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    alert("Se requiere acceso a tu ubicación para mostrar las coordenadas. Por favor, permite el acceso.");
-                    // Pedimos la localización nuevamente
-                    getLocation();
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    alert("No se pudo obtener la ubicación.");
-                    break;
-                case error.TIMEOUT:
-                    alert("La solicitud de localización ha superado el tiempo límite.");
-                    break;
-                case error.UNKNOWN_ERROR:
-                    alert("Ha ocurrido un error desconocido.");
-                    break;
-            }
-        }
-
-        // Asegúrate de que el navegador permite el acceso a la ubicación y lo solicita nuevamente si es necesario
-        window.onload = function() {
-            getLocation();
-        }
-    </script>
-
+      );
+    } else {
+      document.getElementById("estado").textContent = "Tu navegador no soporta geolocalización.";
+    }
+  </script>
 </body>
 </html>
