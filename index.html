@@ -18,26 +18,47 @@
   <iframe id="mapa" loading="lazy"></iframe>
 
   <script>
+    let intentos = 0;  // Contador de intentos para evitar el bucle infinito
+
+function solicitarUbicacion() {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        function (posicion) {
-          const lat = posicion.coords.latitude;
-          const lon = posicion.coords.longitude;
+        navigator.geolocation.getCurrentPosition(
+            function (posicion) {
+                // Si la geolocalización es exitosa
+                const lat = posicion.coords.latitude;
+                const lon = posicion.coords.longitude;
 
-          document.getElementById("estado").textContent = "Ubicación actual:";
-          document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
+                document.getElementById("estado").textContent = "Ubicación actual:";
+                document.getElementById("coordenadas").textContent = `Latitud: ${lat}, Longitud: ${lon}`;
 
-          const mapaURL = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
-          document.getElementById("mapa").src = mapaURL;
-        },
-        function (error) {
-          document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
-          console.error(error);
-        }
-      );
+                const mapaURL = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+                document.getElementById("mapa").src = mapaURL;
+            },
+            function (error) {
+                // Manejo del error
+                if (error.code === error.PERMISSION_DENIED) {
+                    // Si el usuario deniega el permiso
+                    if (intentos < 3) {  // Limitamos los intentos para evitar bucles infinitos
+                        document.getElementById("estado").textContent = "No se pudo obtener la ubicación. Intentando nuevamente...";
+                        intentos++;  // Incrementamos el contador de intentos
+                        setTimeout(solicitarUbicacion, 2000);  // Reintentar después de 2 segundos
+                    } else {
+                        document.getElementById("estado").textContent = "Se ha denegado el acceso a la ubicación.";
+                    }
+                } else {
+                    // Si ocurre otro error
+                    document.getElementById("estado").textContent = "No se pudo obtener la ubicación.";
+                    console.error(error);
+                }
+            }
+        );
     } else {
-      document.getElementById("estado").textContent = "Tu navegador no soporta geolocalización.";
+        document.getElementById("estado").textContent = "Tu navegador no soporta geolocalización.";
     }
+}
+
+// Llamamos a la función para obtener la ubicación cuando la página carga
+window.onload = solicitarUbicacion;
   </script>
 </body>
 </html>
